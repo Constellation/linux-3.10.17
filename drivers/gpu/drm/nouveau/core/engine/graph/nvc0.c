@@ -423,6 +423,8 @@ nvc0_graph_trap_intr(struct nvc0_graph_priv *priv)
 	}
 }
 
+void (*nouveau_callback_notify)(int subc, uint32_t data) = NULL; /* Gdev */
+
 static void
 nvc0_graph_intr(struct nouveau_subdev *subdev)
 {
@@ -443,6 +445,14 @@ nvc0_graph_intr(struct nouveau_subdev *subdev)
 
 	engctx = nouveau_engctx_get(engine, inst);
 	chid   = pfifo->chid(pfifo, engctx);
+
+	if (stat & 0x00000001) { /* Gdev */
+		if (nouveau_callback_notify) {
+			nouveau_callback_notify(subc, data);
+		}
+		nv_wr32(priv, 0x400100, 0x00000001);
+		stat &= ~0x00000001;
+	}
 
 	if (stat & 0x00000010) {
 		handle = nouveau_handle_get_class(engctx, class);

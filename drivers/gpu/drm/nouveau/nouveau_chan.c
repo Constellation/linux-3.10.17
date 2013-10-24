@@ -370,6 +370,17 @@ nouveau_channel_init(struct nouveau_channel *chan, u32 vram, u32 gart)
 		OUT_RING  (chan, NvSw);
 		FIRE_RING (chan);
 	}
+#if 0
+	else { /* patching for Gdev */
+		ret = RING_SPACE(chan, 2);
+		if (ret)
+			return ret;
+		
+		BEGIN_NVC0(chan, NvSubM2MF, 0x0000, 1);
+		OUT_RING  (chan, 0x00009039);
+		FIRE_RING (chan);
+	}
+#endif
 
 	/* initialise synchronisation */
 	return nouveau_fence(chan->drm)->context_new(chan);
