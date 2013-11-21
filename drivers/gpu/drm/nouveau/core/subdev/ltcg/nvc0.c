@@ -169,6 +169,8 @@ nvc0_ltcg_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	u32 parts, mask;
 	int ret, i;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_ltcg_create(parent, engine, oclass, &priv);
 	*pobject = nv_object(priv);
 	if (ret)

@@ -133,6 +133,8 @@ nv98_crypt_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nv98_crypt_priv *priv;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_falcon_create(parent, engine, oclass, 0x087000, true,
 				    "PCRYPT", "crypt", &priv);
 	*pobject = nv_object(priv);

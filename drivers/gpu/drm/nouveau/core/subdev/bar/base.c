@@ -41,6 +41,7 @@ nouveau_barobj_ctor(struct nouveau_object *parent,
 	struct nouveau_barobj *barobj;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 	ret = nouveau_object_create(parent, engine, oclass, 0, &barobj);
 	*pobject = nv_object(barobj);
 	if (ret)

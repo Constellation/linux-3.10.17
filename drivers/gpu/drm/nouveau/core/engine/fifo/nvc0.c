@@ -178,6 +178,8 @@ nvc0_fifo_chan_ctor(struct nouveau_object *parent,
 	u64 usermem, ioffset, ilength;
 	int ret, i;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	if (size < sizeof(*args))
 		return -EINVAL;
 
@@ -294,6 +296,8 @@ nvc0_fifo_context_ctor(struct nouveau_object *parent,
 {
 	struct nvc0_fifo_base *base;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_fifo_context_create(parent, engine, oclass, NULL, 0x1000,
 				          0x1000, NVOBJ_FLAG_ZERO_ALLOC |
@@ -628,6 +632,8 @@ nvc0_fifo_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 {
 	struct nvc0_fifo_priv *priv;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_fifo_create(parent, engine, oclass, 0, 127, &priv);
 	*pobject = nv_object(priv);

@@ -154,6 +154,8 @@ _nouveau_gpuobj_ctor(struct nouveau_object *parent,
 	struct nouveau_gpuobj *object;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_gpuobj_create(parent, engine, oclass, 0, args->pargpu,
 				    args->size, args->align, args->flags,
 				    &object);

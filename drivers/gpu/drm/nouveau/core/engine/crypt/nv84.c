@@ -51,6 +51,8 @@ nv84_crypt_object_ctor(struct nouveau_object *parent,
 	struct nouveau_gpuobj *obj;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_gpuobj_create(parent, engine, oclass, 0, parent,
 				    16, 16, 0, &obj);
 	*pobject = nv_object(obj);
@@ -154,6 +156,8 @@ nv84_crypt_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 {
 	struct nv84_crypt_priv *priv;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_engine_create(parent, engine, oclass, true,
 				    "PCRYPT", "crypt", &priv);

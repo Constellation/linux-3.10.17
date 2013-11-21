@@ -108,6 +108,8 @@ nouveau_devobj_ctor(struct nouveau_object *parent,
 	void __iomem *map;
 	int ret, i, c;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	if (size < sizeof(struct nv_device_class))
 		return -EINVAL;
 

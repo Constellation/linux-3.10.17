@@ -67,6 +67,8 @@ nva3_disp_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nv50_disp_priv *priv;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_disp_create(parent, engine, oclass, 2, "PDISP",
 				  "display", &priv);
 	*pobject = nv_object(priv);

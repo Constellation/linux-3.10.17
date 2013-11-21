@@ -434,6 +434,7 @@ nouveau_bios_ctor(struct nouveau_object *parent,
 	struct bit_entry bit_i;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 	ret = nouveau_subdev_create(parent, engine, oclass, 0,
 				    "VBIOS", "bios", &bios);
 	*pobject = nv_object(bios);

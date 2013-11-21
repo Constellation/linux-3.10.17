@@ -90,6 +90,8 @@ nvc0_graph_context_ctor(struct nouveau_object *parent,
 	struct nvc0_graph_chan *chan;
 	int ret, i;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	/* allocate memory for context, and fill with default values */
 	ret = nouveau_graph_context_create(parent, engine, oclass, NULL,
 					   priv->size, 0x100,
@@ -544,6 +546,8 @@ nvc0_graph_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nvc0_graph_priv *priv;
 	bool enable = device->chipset != 0xd7;
 	int ret, i;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_graph_create(parent, engine, oclass, enable, &priv);
 	*pobject = nv_object(priv);

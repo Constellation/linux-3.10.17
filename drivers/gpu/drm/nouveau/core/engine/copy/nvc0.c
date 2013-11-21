@@ -103,6 +103,8 @@ nvc0_copy0_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nvc0_copy_priv *priv;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	if (nv_rd32(parent, 0x022500) & 0x00000100)
 		return -ENODEV;
 
@@ -130,6 +132,8 @@ nvc0_copy1_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 {
 	struct nvc0_copy_priv *priv;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	if (nv_rd32(parent, 0x022500) & 0x00000200)
 		return -ENODEV;

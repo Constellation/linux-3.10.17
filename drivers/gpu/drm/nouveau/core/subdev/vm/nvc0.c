@@ -211,6 +211,8 @@ nvc0_vmmgr_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nvc0_vmmgr_priv *priv;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_vmmgr_create(parent, engine, oclass, "VM", "vm", &priv);
 	*pobject = nv_object(priv);
 	if (ret)

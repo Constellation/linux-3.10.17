@@ -84,6 +84,8 @@ nvc0_vp_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nvc0_vp_priv *priv;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_falcon_create(parent, engine, oclass, 0x085000, true,
 				    "PVP", "vp", &priv);
 	*pobject = nv_object(priv);

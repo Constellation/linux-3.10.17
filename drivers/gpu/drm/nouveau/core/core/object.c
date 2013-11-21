@@ -70,6 +70,8 @@ _nouveau_object_ctor(struct nouveau_object *parent,
 	struct nouveau_object *object;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_object_create(parent, engine, oclass, 0, &object);
 	*pobject = nv_object(object);
 	if (ret)

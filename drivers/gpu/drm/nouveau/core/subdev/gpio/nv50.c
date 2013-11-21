@@ -145,6 +145,8 @@ nv50_gpio_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nv50_gpio_priv *priv;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_gpio_create(parent, engine, oclass,
 				  nv_device(parent)->chipset >= 0x90 ? 32 : 16,
 				  &priv);

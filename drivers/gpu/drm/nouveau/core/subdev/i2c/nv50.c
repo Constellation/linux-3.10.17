@@ -84,6 +84,8 @@ nv50_i2c_port_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nv50_i2c_port *port;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_i2c_port_create(parent, engine, oclass, index,
 				     &nouveau_i2c_bit_algo, &port);
 	*pobject = nv_object(port);
@@ -128,6 +130,8 @@ nv50_i2c_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 {
 	struct nv50_i2c_priv *priv;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_i2c_create(parent, engine, oclass, nv50_i2c_sclass, &priv);
 	*pobject = nv_object(priv);

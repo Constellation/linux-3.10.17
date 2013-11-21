@@ -48,6 +48,8 @@ nv50_instobj_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	u32 align = (unsigned long)data;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	size  = max((size  + 4095) & ~4095, (u32)4096);
 	align = max((align + 4095) & ~4095, (u32)4096);
 

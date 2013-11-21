@@ -198,6 +198,8 @@ _nouveau_engctx_ctor(struct nouveau_object *parent,
 	struct nouveau_engctx *engctx;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_engctx_create(parent, engine, oclass, NULL, 256, 256,
 				    NVOBJ_FLAG_ZERO_ALLOC, &engctx);
 	*pobject = nv_object(engctx);

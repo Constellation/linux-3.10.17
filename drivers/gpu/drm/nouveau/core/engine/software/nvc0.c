@@ -169,6 +169,8 @@ nvc0_software_context_ctor(struct nouveau_object *parent,
 	struct nvc0_software_chan *chan;
 	int ret;
 
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_software_context_create(parent, engine, oclass, &chan);
 	*pobject = nv_object(chan);
 	if (ret)
@@ -201,6 +203,8 @@ nvc0_software_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 {
 	struct nvc0_software_priv *priv;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_software_create(parent, engine, oclass, &priv);
 	*pobject = nv_object(priv);

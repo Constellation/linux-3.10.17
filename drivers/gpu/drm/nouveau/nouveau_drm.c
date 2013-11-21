@@ -315,6 +315,9 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 		/* dummy device object, doesn't init anything, but allows
 		 * agp code access to registers
 		 */
+		printk(KERN_NOTICE "Nouveau initialize with AGP\n");  // currenlty, there's no path here
+
+		goto fail_device;
 		ret = nouveau_object_new(nv_object(drm), NVDRM_CLIENT,
 					 NVDRM_DEVICE, 0x0080,
 					 &(struct nv_device_class) {
@@ -331,6 +334,8 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 		nouveau_agp_reset(drm);
 		nouveau_object_del(nv_object(drm), NVDRM_CLIENT, NVDRM_DEVICE);
 	}
+
+	printk(KERN_NOTICE "Nouveau initialized\n");
 
 	ret = nouveau_object_new(nv_object(drm), NVDRM_CLIENT, NVDRM_DEVICE,
 				 0x0080, &(struct nv_device_class) {
