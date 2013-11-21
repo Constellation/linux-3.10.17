@@ -47,6 +47,8 @@ nva3_therm_init(struct nouveau_object *object)
 	struct dcb_gpio_func *tach = &priv->base.fan->tach;
 	int ret;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_therm_init(&priv->base.base);
 	if (ret)
 		return ret;
@@ -71,6 +73,8 @@ nva3_therm_ctor(struct nouveau_object *parent,
 {
 	struct nva3_therm_priv *priv;
 	int ret;
+
+	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
 
 	ret = nouveau_therm_create(parent, engine, oclass, &priv);
 	*pobject = nv_object(priv);

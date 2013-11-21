@@ -90,6 +90,8 @@ nouveau_instmem_init(struct nouveau_instmem *imem)
 	struct nouveau_instobj *iobj;
 	int ret, i;
 
+	nv_warn(imem, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_subdev_init(&imem->base);
 	if (ret)
 		return ret;

@@ -48,6 +48,8 @@ _nouveau_falcon_init(struct nouveau_object *object)
 	int ret, i;
 	u32 caps;
 
+	nv_warn(falcon, "[%s]\n", __PRETTY_FUNCTION__);
+
 	/* enable engine, and determine its capabilities */
 	ret = nouveau_engine_init(&falcon->base);
 	if (ret)

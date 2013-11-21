@@ -493,6 +493,9 @@ static int
 nouveau_bios_init(struct nouveau_object *object)
 {
 	struct nouveau_bios *bios = (void *)object;
+
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	return nouveau_subdev_init(&bios->base);
 }
 

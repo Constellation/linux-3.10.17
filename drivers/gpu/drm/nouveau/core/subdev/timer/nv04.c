@@ -169,6 +169,8 @@ nv04_timer_init(struct nouveau_object *object)
 	u32 m = 1, f, n, d;
 	int ret;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_timer_init(&priv->base);
 	if (ret)
 		return ret;

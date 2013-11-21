@@ -24,6 +24,7 @@
 
 #include "core/os.h"
 #include "core/mm.h"
+#include "core/printk.h"
 
 #define node(root, dir) ((root)->nl_entry.dir == &mm->nodes) ? NULL : \
 	list_entry((root)->nl_entry.dir, struct nouveau_mm_node, nl_entry)
@@ -206,6 +207,8 @@ int
 nouveau_mm_init(struct nouveau_mm *mm, u32 offset, u32 length, u32 block)
 {
 	struct nouveau_mm_node *node;
+
+	/* nv_warn(mm, "[%s]\n", __PRETTY_FUNCTION__); */
 
 	if (block) {
 		mutex_init(&mm->mutex);

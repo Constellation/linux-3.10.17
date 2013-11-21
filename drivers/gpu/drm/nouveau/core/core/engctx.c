@@ -140,6 +140,8 @@ nouveau_engctx_init(struct nouveau_engctx *engctx)
 	struct nouveau_subdev *pardev;
 	int ret;
 
+	nv_warn(engctx, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_gpuobj_init(&engctx->base);
 	if (ret)
 		return ret;

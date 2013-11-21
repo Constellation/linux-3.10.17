@@ -247,6 +247,8 @@ _nouveau_i2c_init(struct nouveau_object *object)
 	struct nouveau_i2c_port *port;
 	int ret;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_subdev_init(&i2c->base);
 	if (ret == 0) {
 		list_for_each_entry(port, &i2c->ports, head) {

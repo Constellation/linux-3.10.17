@@ -195,6 +195,8 @@ nvc0_bar_init(struct nouveau_object *object)
 	struct nvc0_bar_priv *priv = (void *)object;
 	int ret;
 
+	nv_warn(priv, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_bar_init(&priv->base);
 	if (ret)
 		return ret;

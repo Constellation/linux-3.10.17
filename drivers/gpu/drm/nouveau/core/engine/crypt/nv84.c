@@ -179,6 +179,8 @@ nv84_crypt_init(struct nouveau_object *object)
 	struct nv84_crypt_priv *priv = (void *)object;
 	int ret;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_engine_init(&priv->base);
 	if (ret)
 		return ret;

@@ -102,6 +102,8 @@ _nouveau_object_dtor(struct nouveau_object *object)
 int
 nouveau_object_init(struct nouveau_object *object)
 {
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	return 0;
 }
 

@@ -179,6 +179,8 @@ nvc0_fb_init(struct nouveau_object *object)
 	struct nvc0_fb_priv *priv = (void *)object;
 	int ret;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_fb_init(&priv->base);
 	if (ret)
 		return ret;

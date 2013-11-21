@@ -87,6 +87,8 @@ nvc0_copy_init(struct nouveau_object *object)
 	struct nvc0_copy_priv *priv = (void *)object;
 	int ret;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	ret = nouveau_falcon_init(&priv->base);
 	if (ret)
 		return ret;

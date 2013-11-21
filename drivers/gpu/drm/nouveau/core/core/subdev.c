@@ -38,7 +38,11 @@ nouveau_subdev_reset(struct nouveau_object *subdev)
 int
 nouveau_subdev_init(struct nouveau_subdev *subdev)
 {
-	int ret = nouveau_object_init(&subdev->base);
+	int ret;
+
+	nv_warn(subdev, "[%s]\n", __PRETTY_FUNCTION__);
+
+	ret = nouveau_object_init(&subdev->base);
 	if (ret)
 		return ret;
 

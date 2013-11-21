@@ -38,6 +38,8 @@ nouveau_handle_init(struct nouveau_handle *handle)
 	struct nouveau_handle *item;
 	int ret;
 
+	nv_warn(handle, "[%s]\n", __PRETTY_FUNCTION__);
+
 	hprintk(handle, TRACE, "init running\n");
 	ret = nouveau_object_inc(handle->object);
 	if (ret)

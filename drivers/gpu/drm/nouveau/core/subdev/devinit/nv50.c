@@ -68,6 +68,8 @@ nv50_devinit_init(struct nouveau_object *object)
 	u8  ver = 0xff, hdr, cnt, len;
 	int ret, i = 0;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	if (!priv->base.post) {
 		if (!nv_rdvgac(priv, 0, 0x00) &&
 		    !nv_rdvgac(priv, 0, 0x1a)) {

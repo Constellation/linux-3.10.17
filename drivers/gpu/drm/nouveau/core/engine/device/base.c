@@ -395,6 +395,8 @@ nouveau_device_init(struct nouveau_object *object)
 	struct nouveau_object *subdev;
 	int ret, i;
 
+	nv_warn(object, "[%s]\n", __PRETTY_FUNCTION__);
+
 	for (i = 0; i < NVDEV_SUBDEV_NR; i++) {
 		if ((subdev = device->subdev[i])) {
 			if (!nv_iclass(subdev, NV_ENGINE_CLASS)) {
