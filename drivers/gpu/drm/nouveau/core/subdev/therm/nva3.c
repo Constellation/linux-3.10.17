@@ -23,6 +23,7 @@
  */
 
 #include <subdev/gpio.h>
+#include <subdev/paravirt.h>
 
 #include "priv.h"
 
@@ -75,6 +76,9 @@ nva3_therm_ctor(struct nouveau_object *parent,
 	int ret;
 
 	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+
+	if (nouveau_paravirt(parent))
+		return -ENODEV;
 
 	ret = nouveau_therm_create(parent, engine, oclass, &priv);
 	*pobject = nv_object(priv);
