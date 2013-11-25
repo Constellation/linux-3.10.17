@@ -139,13 +139,22 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (ret)
 		return ret;
 
-	ret = nouveau_gpuobj_new(nv_object(priv), NULL,
-				 (pci_resource_len(pdev, 3) >> 12) * 8,
-				 0x1000, NVOBJ_FLAG_ZERO_ALLOC,
-				 &vm->pgt[0].obj[0]);
+	if (paravirt) {
+		ret = nouveau_paravirt_gpuobj_new(nv_object(priv),
+						  (pci_resource_len(pdev, 3) >> 12) * 8,
+						  0x1000, NVOBJ_FLAG_ZERO_ALLOC,
+						  &vm->pgt[0].obj[0]);
+	} else {
+		ret = nouveau_gpuobj_new(nv_object(priv), NULL,
+					 (pci_resource_len(pdev, 3) >> 12) * 8,
+					 0x1000, NVOBJ_FLAG_ZERO_ALLOC,
+					 &vm->pgt[0].obj[0]);
+	}
 	vm->pgt[0].refcount[0] = 1;
 	if (ret)
 		return ret;
+	if (paravirt)
+		nouveau_paravirt_bar3_pgt(paravirt, vm->pgt[0].obj[0]);
 
 	ret = nouveau_vm_ref(vm, &priv->bar[0].vm, priv->bar[0].pgd);
 	nouveau_vm_ref(NULL, &vm, NULL);
