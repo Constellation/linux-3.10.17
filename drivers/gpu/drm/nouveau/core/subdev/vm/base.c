@@ -26,6 +26,7 @@
 #include <core/mm.h>
 
 #include <subdev/fb.h>
+#include <subdev/paravirt.h>
 #include <subdev/vm.h>
 
 void
@@ -249,6 +250,7 @@ nouveau_vm_map_pgt(struct nouveau_vm *vm, u32 pde, u32 type)
 	struct nouveau_vm_pgt *vpgt = &vm->pgt[pde - vm->fpde];
 	struct nouveau_vm_pgd *vpgd;
 	struct nouveau_gpuobj *pgt;
+	struct nouveau_paravirt *paravirt;
 	int big = (type != vmm->spg_shift);
 	u32 pgt_size;
 	int ret;
@@ -257,8 +259,13 @@ nouveau_vm_map_pgt(struct nouveau_vm *vm, u32 pde, u32 type)
 	pgt_size *= 8;
 
 	mutex_unlock(&vm->mm.mutex);
-	ret = nouveau_gpuobj_new(nv_object(vm->vmm), NULL, pgt_size, 0x1000,
-				 NVOBJ_FLAG_ZERO_ALLOC, &pgt);
+	if ((paravirt = nouveau_paravirt(vm))) {
+		ret = nouveau_paravirt_gpuobj_new(nv_object(vm->vmm), pgt_size, 0x1000,
+						  NVOBJ_FLAG_ZERO_ALLOC, &pgt);
+	} else {
+		ret = nouveau_gpuobj_new(nv_object(vm->vmm), NULL, pgt_size, 0x1000,
+					 NVOBJ_FLAG_ZERO_ALLOC, &pgt);
+	}
 	mutex_lock(&vm->mm.mutex);
 	if (unlikely(ret))
 		return ret;
