@@ -35,6 +35,7 @@
 #include <subdev/timer.h>
 #include <subdev/bar.h>
 #include <subdev/vm.h>
+#include <subdev/paravirt.h>
 
 #include <engine/dmaobj.h>
 #include <engine/fifo.h>
@@ -171,6 +172,7 @@ nvc0_fifo_chan_ctor(struct nouveau_object *parent,
 		    struct nouveau_object **pobject)
 {
 	struct nouveau_bar *bar = nouveau_bar(parent);
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(parent);
 	struct nvc0_fifo_priv *priv = (void *)engine;
 	struct nvc0_fifo_base *base = (void *)parent;
 	struct nvc0_fifo_chan *chan;
@@ -196,6 +198,10 @@ nvc0_fifo_chan_ctor(struct nouveau_object *parent,
 	*pobject = nv_object(chan);
 	if (ret)
 		return ret;
+
+	if (paravirt) {
+		nouveau_paravirt_set_pgd(paravirt, chan->base.chid, nv_paravirt_gpuobj(base->pgd));
+	}
 
 	nv_parent(chan)->context_attach = nvc0_fifo_context_attach;
 	nv_parent(chan)->context_detach = nvc0_fifo_context_detach;
@@ -295,6 +301,7 @@ nvc0_fifo_context_ctor(struct nouveau_object *parent,
 		       struct nouveau_object **pobject)
 {
 	struct nvc0_fifo_base *base;
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(parent);
 	int ret;
 
 	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
@@ -306,13 +313,20 @@ nvc0_fifo_context_ctor(struct nouveau_object *parent,
 	if (ret)
 		return ret;
 
-	ret = nouveau_gpuobj_new(nv_object(base), NULL, 0x10000, 0x1000, 0,
-				&base->pgd);
+	if (paravirt) {
+		ret = nouveau_paravirt_gpuobj_new(nv_object(base), 0x10000, 0x1000, 0,
+						  &base->pgd);
+	} else {
+		ret = nouveau_gpuobj_new(nv_object(base), NULL, 0x10000, 0x1000, 0,
+					 &base->pgd);
+	}
 	if (ret)
 		return ret;
 
-	nv_wo32(base, 0x0200, lower_32_bits(base->pgd->addr));
-	nv_wo32(base, 0x0204, upper_32_bits(base->pgd->addr));
+	if (!paravirt) {
+		nv_wo32(base, 0x0200, lower_32_bits(base->pgd->addr));
+		nv_wo32(base, 0x0204, upper_32_bits(base->pgd->addr));
+	}
 	nv_wo32(base, 0x0208, 0xffffffff);
 	nv_wo32(base, 0x020c, 0x000000ff);
 
@@ -634,6 +648,7 @@ nvc0_fifo_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	int ret;
 
 	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
+	return -EINVAL;
 
 	ret = nouveau_fifo_create(parent, engine, oclass, 0, 127, &priv);
 	*pobject = nv_object(priv);
