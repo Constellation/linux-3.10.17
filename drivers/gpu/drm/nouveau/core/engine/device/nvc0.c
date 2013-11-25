@@ -22,6 +22,7 @@
  * Authors: Ben Skeggs
  */
 
+#include <subdev/paravirt.h>
 #include <subdev/bios.h>
 #include <subdev/bus.h>
 #include <subdev/gpio.h>
@@ -56,6 +57,7 @@ nvc0_identify(struct nouveau_device *device)
 	switch (device->chipset) {
 	case 0xc0:
 		device->cname = "GF100";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -85,6 +87,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xc4:
 		device->cname = "GF104";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -114,6 +117,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xc3:
 		device->cname = "GF106";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -142,6 +146,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xce:
 		device->cname = "GF114";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -171,6 +176,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xcf:
 		device->cname = "GF116";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -200,6 +206,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xc1:
 		device->cname = "GF108";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -228,6 +235,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xc8:
 		device->cname = "GF110";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nv50_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nv94_i2c_oclass;
@@ -257,6 +265,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xd9:
 		device->cname = "GF119";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nvd0_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nvd0_i2c_oclass;
@@ -285,6 +294,7 @@ nvc0_identify(struct nouveau_device *device)
 		break;
 	case 0xd7:
 		device->cname = "GF117";
+		device->oclass[NVDEV_SUBDEV_PARAVIRT] = &nvc0_paravirt_oclass;
 		device->oclass[NVDEV_SUBDEV_VBIOS  ] = &nouveau_bios_oclass;
 		device->oclass[NVDEV_SUBDEV_GPIO   ] = &nvd0_gpio_oclass;
 		device->oclass[NVDEV_SUBDEV_I2C    ] = &nvd0_i2c_oclass;

@@ -7,6 +7,7 @@
 
 enum nv_subdev_type {
 	NVDEV_ENGINE_DEVICE,
+	NVDEV_SUBDEV_PARAVIRT,
 	NVDEV_SUBDEV_VBIOS,
 
 	/* All subdevs from DEVINIT to DEVINIT_LAST will be created before
