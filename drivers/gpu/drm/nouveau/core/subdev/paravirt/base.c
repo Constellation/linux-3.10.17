@@ -84,7 +84,7 @@ _nouveau_paravirt_gpuobj_ctor(struct nouveau_object *parent,
 	paravirt = nouveau_paravirt(parent);
 	slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_MEM_ALLOC;
-	slot->u32[1] = size;
+	slot->u32[1] = args->size;
 	nouveau_paravirt_call(paravirt, slot);
 
 	ret = slot->u32[0];
