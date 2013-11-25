@@ -36,15 +36,6 @@ struct nouveau_paravirt {
 	struct semaphore sema;
 };
 
-/* If ParaVirt is not enabled, returns NULL */
-static inline struct nouveau_paravirt *
-nouveau_paravirt(void *obj)
-{
-	return (void *)nv_device(obj)->subdev[NVDEV_SUBDEV_PARAVIRT];
-}
-
-extern struct nouveau_oclass nvc0_paravirt_oclass;
-
 struct nouveau_paravirt_slot {
 	union {
 		u8   u8[NOUVEAU_PV_SLOT_SIZE / sizeof(u8) ];
@@ -54,12 +45,37 @@ struct nouveau_paravirt_slot {
 	};
 };
 
+/* If ParaVirt is not enabled, returns NULL */
+static inline struct nouveau_paravirt *
+nouveau_paravirt(void *obj)
+{
+	return (void *)nv_device(obj)->subdev[NVDEV_SUBDEV_PARAVIRT];
+}
+
+extern struct nouveau_oclass nvc0_paravirt_oclass;
+
 struct nouveau_paravirt_gpuobj {
 	struct nouveau_gpuobj base;
 	u32 paravirt_id;
 };
+static inline struct nouveau_paravirt_gpuobj *
+nv_paravirt_gpuobj(void *obj)
+{
+#if CONFIG_NOUVEAU_DEBUG >= NV_DBG_PARANOIA
+	if (unlikely(!nv_iclass(obj, NV_PARAVIRT_CLASS)))
+		nv_assert("BAD CAST -> NvGpuObj, %08x", nv_hclass(obj));
+#endif
+	return obj;
+}
+#define nouveau_paravirt_gpuobj_create(p,e,c,v,s,a,f,d)                         \
+	nouveau_paravirt_gpuobj_create_((p), (e), (c), (v), (s), (a), (f),      \
+			                sizeof(**d), (void **)d)
+int
+nouveau_paravirt_gpuobj_new(struct nouveau_object *parent,
+			    u32 size, u32 align, u32 flags,
+			    struct nouveau_gpuobj **pgpuobj);
+extern struct nouveau_oclass nouveau_paravirt_gpuobj_oclass;
 
-extern struct nouveau_oclass nouveau_paravirt_gpuobj_class;
 
 struct nouveau_channel;
 struct nouveau_vma;
@@ -68,9 +84,6 @@ struct nouveau_mem;
 struct nouveau_paravirt_slot* nouveau_paravirt_alloc_slot(struct nouveau_paravirt *);
 void nouveau_paravirt_free_slot(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
 int nouveau_paravirt_call(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
-
-int nouveau_paravirt_gpuobj_new(struct nouveau_paravirt *, u32 size, struct nouveau_paravirt_gpuobj **);
-void nouveau_paravirt_gpuobj_ref(struct nouveau_paravirt_gpuobj *, struct nouveau_paravirt_gpuobj **);
 
 int nouveau_paravirt_set_pgd(struct nouveau_paravirt *, struct nouveau_channel*, struct nouveau_paravirt_gpuobj*, int id);
 int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgd, u32 index, struct nouveau_paravirt_gpuobj *pgt[2]);

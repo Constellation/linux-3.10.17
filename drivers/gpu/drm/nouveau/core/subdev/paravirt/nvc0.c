@@ -104,67 +104,6 @@ int nouveau_paravirt_call(struct nouveau_paravirt *paravirt, struct nouveau_para
 	return 0;
 }
 
-#if 0
-int nouveau_paravirt_gpuobj_new(struct nouveau_paravirt *paravirt, u32 size, struct nouveau_paravirt_gpuobj **ret)
-{
-	struct nouveau_paravirt_gpuobj* obj;
-
-	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
-	if (!obj)
-		return -ENOMEM;
-
-	obj->dev = dev;
-	kref_init(&obj->refcount);
-	obj->size = size;
-
-	{
-		int ret;
-		struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(dev);
-		slot->u8[0] = NOUVEAU_PV_OP_MEM_ALLOC;
-		slot->u32[1] = size;
-		nouveau_paravirt_call(dev, slot);
-
-		ret = slot->u32[0];
-		obj->paravirt_id = slot->u32[1];
-
-		nouveau_paravirt_free_slot(dev, slot);
-
-		if (ret) {
-			nouveau_paravirt_gpuobj_ref(NULL, &obj);
-			return ret;
-		}
-	}
-
-	*ret = obj;
-	return 0;
-}
-
-static void nouveau_paravirt_gpuobj_del(struct kref *ref)
-{
-	struct nouveau_paravirt_gpuobj *obj = container_of(ref, struct nouveau_paravirt_gpuobj, refcount);
-	struct drm_device* dev = obj->dev;
-	{
-		struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(dev);
-		slot->u8[0] = NOUVEAU_PV_OP_MEM_FREE;
-		slot->u32[1] = obj->paravirt_id;
-		nouveau_paravirt_call(dev, slot);
-		nouveau_paravirt_free_slot(dev, slot);
-	}
-	kfree(obj);
-}
-
-void nouveau_paravirt_gpuobj_ref(struct nouveau_paravirt_gpuobj *ref, struct nouveau_paravirt_gpuobj **ptr)
-{
-	if (ref)
-		kref_get(&ref->refcount);
-
-	if (*ptr)
-		kref_put(&(*ptr)->refcount, nouveau_paravirt_gpuobj_del);
-
-	*ptr = ref;
-}
-#endif
-
 int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, struct nouveau_channel* chan, struct nouveau_paravirt_gpuobj* pgd, int id)
 {
 	int ret;

@@ -92,6 +92,13 @@ nvc0_vm_map_pgt(struct nouveau_gpuobj *pgd, u32 index,
 	nv_wo32(pgd, (index * 8) + 4, pde[1]);
 }
 
+static void
+nvc0_vm_paravirt_map_pgt(struct nouveau_gpuobj *pgd, u32 index,
+			 struct nouveau_gpuobj *pgt[2])
+{
+	/* assert pgd and pgt is paravirt_gpuobj */
+}
+
 static inline u64
 nvc0_vm_addr(struct nouveau_vma *vma, u64 phys, u32 memtype, u32 target)
 {
@@ -228,13 +235,23 @@ nvc0_vmmgr_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (nouveau_paravirt(parent)) {
 		nv_warn(parent, "paravirt is enabled\n");
 	}
-
-	priv->base.create = nvc0_vm_create;
-	priv->base.map_pgt = nvc0_vm_map_pgt;
-	priv->base.map = nvc0_vm_map;
-	priv->base.map_sg = nvc0_vm_map_sg;
-	priv->base.unmap = nvc0_vm_unmap;
-	priv->base.flush = nvc0_vm_flush;
+#if 0
+		priv->base.map_pgt = nvc0_vm_paravirt_map_pgt;
+		priv->base.map = nvc0_vm_paravirt_map;
+		priv->base.map_sg = nvc0_vm_paravirt_map_sg;
+		priv->base.unmap = nvc0_vm_paravirt_unmap;
+		priv->base.flush = nvc0_vm_paravirt_flush;
+	} else {
+#endif
+		priv->base.create = nvc0_vm_create;
+		priv->base.map_pgt = nvc0_vm_map_pgt;
+		priv->base.map = nvc0_vm_map;
+		priv->base.map_sg = nvc0_vm_map_sg;
+		priv->base.unmap = nvc0_vm_unmap;
+		priv->base.flush = nvc0_vm_flush;
+#if 0
+	}
+#endif
 	spin_lock_init(&priv->lock);
 	return 0;
 }
