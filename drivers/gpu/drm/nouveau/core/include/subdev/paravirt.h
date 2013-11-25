@@ -85,7 +85,7 @@ struct nouveau_paravirt_slot* nouveau_paravirt_alloc_slot(struct nouveau_paravir
 void nouveau_paravirt_free_slot(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
 int nouveau_paravirt_call(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
 
-int nouveau_paravirt_set_pgd(struct nouveau_paravirt *, struct nouveau_channel*, struct nouveau_paravirt_gpuobj*, int id);
+int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, int cid, struct nouveau_paravirt_gpuobj* pgd);
 int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgd, u32 index, struct nouveau_paravirt_gpuobj *pgt[2]);
 int nouveau_paravirt_map(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt, u32 index, u64 phys);
 int nouveau_paravirt_map_batch(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt, u32 index, u64 phys, u32 next, u32 count);

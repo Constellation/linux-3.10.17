@@ -28,6 +28,7 @@
 #include <subdev/bar.h>
 #include <subdev/fb.h>
 #include <subdev/vm.h>
+#include <subdev/paravirt.h>
 
 struct nvc0_bar_priv {
 	struct nouveau_bar base;
@@ -44,6 +45,7 @@ nvc0_bar_kmap(struct nouveau_bar *bar, struct nouveau_mem *mem,
 	      u32 flags, struct nouveau_vma *vma)
 {
 	struct nvc0_bar_priv *priv = (void *)bar;
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(bar);
 	int ret;
 
 	ret = nouveau_vm_get(priv->bar[0].vm, mem->size << 12, 12, flags, vma);
@@ -51,7 +53,11 @@ nvc0_bar_kmap(struct nouveau_bar *bar, struct nouveau_mem *mem,
 		return ret;
 
 	nouveau_vm_map(vma, mem);
-	nvc0_vm_flush_engine(nv_subdev(bar), priv->bar[0].pgd->addr, 5);
+	if (paravirt) {
+		nvc0_vm_paravirt_flush_engine(nv_subdev(bar), nv_paravirt_gpuobj(priv->bar[0].pgd), 5);
+	} else {
+		nvc0_vm_flush_engine(nv_subdev(bar), priv->bar[0].pgd->addr, 5);
+	}
 	return 0;
 }
 
@@ -60,6 +66,7 @@ nvc0_bar_umap(struct nouveau_bar *bar, struct nouveau_mem *mem,
 	      u32 flags, struct nouveau_vma *vma)
 {
 	struct nvc0_bar_priv *priv = (void *)bar;
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(bar);
 	int ret;
 
 	ret = nouveau_vm_get(priv->bar[1].vm, mem->size << 12,
@@ -68,7 +75,11 @@ nvc0_bar_umap(struct nouveau_bar *bar, struct nouveau_mem *mem,
 		return ret;
 
 	nouveau_vm_map(vma, mem);
-	nvc0_vm_flush_engine(nv_subdev(bar), priv->bar[1].pgd->addr, 5);
+	if (paravirt) {
+		nvc0_vm_paravirt_flush_engine(nv_subdev(bar), nv_paravirt_gpuobj(priv->bar[1].pgd), 5);
+	} else {
+		nvc0_vm_flush_engine(nv_subdev(bar), priv->bar[1].pgd->addr, 5);
+	}
 	return 0;
 }
 
@@ -76,10 +87,15 @@ static void
 nvc0_bar_unmap(struct nouveau_bar *bar, struct nouveau_vma *vma)
 {
 	struct nvc0_bar_priv *priv = (void *)bar;
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(bar);
 	int i = !(vma->vm == priv->bar[0].vm);
 
 	nouveau_vm_unmap(vma);
-	nvc0_vm_flush_engine(nv_subdev(bar), priv->bar[i].pgd->addr, 5);
+	if (paravirt) {
+		nvc0_vm_paravirt_flush_engine(nv_subdev(bar), nv_paravirt_gpuobj(priv->bar[i].pgd), 5);
+	} else {
+		nvc0_vm_flush_engine(nv_subdev(bar), priv->bar[i].pgd->addr, 5);
+	}
 	nouveau_vm_put(vma);
 }
 
@@ -93,6 +109,7 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	struct nvc0_bar_priv *priv;
 	struct nouveau_gpuobj *mem;
 	struct nouveau_vm *vm;
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(parent);
 	int ret;
 
 	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
@@ -108,8 +125,13 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (ret)
 		return ret;
 
-	ret = nouveau_gpuobj_new(nv_object(priv), NULL, 0x8000, 0, 0,
+	if (paravirt) {
+		ret = nouveau_paravirt_gpuobj_new(nv_object(priv), 0x8000, 0, 0,
 				&priv->bar[0].pgd);
+	} else {
+		ret = nouveau_gpuobj_new(nv_object(priv), NULL, 0x8000, 0, 0,
+					&priv->bar[0].pgd);
+	}
 	if (ret)
 		return ret;
 
@@ -130,8 +152,12 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (ret)
 		return ret;
 
-	nv_wo32(mem, 0x0200, lower_32_bits(priv->bar[0].pgd->addr));
-	nv_wo32(mem, 0x0204, upper_32_bits(priv->bar[0].pgd->addr));
+	if (paravirt) {
+		nouveau_paravirt_set_pgd(paravirt, -3, nv_paravirt_gpuobj(priv->bar[0].pgd));
+	} else {
+		nv_wo32(mem, 0x0200, lower_32_bits(priv->bar[0].pgd->addr));
+		nv_wo32(mem, 0x0204, upper_32_bits(priv->bar[0].pgd->addr));
+	}
 	nv_wo32(mem, 0x0208, lower_32_bits(pci_resource_len(pdev, 3) - 1));
 	nv_wo32(mem, 0x020c, upper_32_bits(pci_resource_len(pdev, 3) - 1));
 
@@ -142,8 +168,13 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (ret)
 		return ret;
 
-	ret = nouveau_gpuobj_new(nv_object(priv), NULL, 0x8000, 0, 0,
-				&priv->bar[1].pgd);
+	if (paravirt) {
+		ret = nouveau_paravirt_gpuobj_new(nv_object(priv), 0x8000, 0, 0,
+						  &priv->bar[1].pgd);
+	} else {
+		ret = nouveau_gpuobj_new(nv_object(priv), NULL, 0x8000, 0, 0,
+					&priv->bar[1].pgd);
+	}
 	if (ret)
 		return ret;
 
@@ -156,8 +187,12 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (ret)
 		return ret;
 
-	nv_wo32(mem, 0x0200, lower_32_bits(priv->bar[1].pgd->addr));
-	nv_wo32(mem, 0x0204, upper_32_bits(priv->bar[1].pgd->addr));
+	if (paravirt) {
+		nouveau_paravirt_set_pgd(paravirt, -1, nv_paravirt_gpuobj(priv->bar[1].pgd));
+	} else {
+		nv_wo32(mem, 0x0200, lower_32_bits(priv->bar[1].pgd->addr));
+		nv_wo32(mem, 0x0204, upper_32_bits(priv->bar[1].pgd->addr));
+	}
 	nv_wo32(mem, 0x0208, lower_32_bits(pci_resource_len(pdev, 1) - 1));
 	nv_wo32(mem, 0x020c, upper_32_bits(pci_resource_len(pdev, 1) - 1));
 
@@ -167,6 +202,7 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	priv->base.unmap = nvc0_bar_unmap;
 	priv->base.flush = nv84_bar_flush;
 	spin_lock_init(&priv->lock);
+	return -EINVAL;
 	return 0;
 }
 

@@ -104,13 +104,13 @@ int nouveau_paravirt_call(struct nouveau_paravirt *paravirt, struct nouveau_para
 	return 0;
 }
 
-int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, struct nouveau_channel* chan, struct nouveau_paravirt_gpuobj* pgd, int id)
+int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, int cid, struct nouveau_paravirt_gpuobj* pgd)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_SET_PGD;
 	slot->u32[1] = pgd->paravirt_id;
-	slot->u32[2] = id;
+	slot->u32[2] = cid;
 	nouveau_paravirt_call(paravirt, slot);
 
 	ret = slot->u32[0];

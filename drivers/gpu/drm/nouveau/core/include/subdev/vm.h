@@ -41,6 +41,7 @@ struct nouveau_vm_pgd {
 };
 
 struct nouveau_gpuobj;
+struct nouveau_paravirt_gpuobj;
 struct nouveau_mem;
 
 struct nouveau_vma {
@@ -119,6 +120,8 @@ void nv04_vmmgr_dtor(struct nouveau_object *);
 
 void nv50_vm_flush_engine(struct nouveau_subdev *, int engine);
 void nvc0_vm_flush_engine(struct nouveau_subdev *, u64 addr, int type);
+void nvc0_vm_paravirt_flush_engine(struct nouveau_subdev *,
+				   struct nouveau_paravirt_gpuobj *, int type);
 
 /* nouveau_vm.c */
 int  nouveau_vm_create(struct nouveau_vmmgr *, u64 offset, u64 length,
