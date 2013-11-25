@@ -24,4 +24,9 @@
 
 #include <subdev/paravirt.h>
 
-
+int nouveau_paravirt_enabled(struct nouveau_paravirt *paravirt)
+{
+	/* If BAR4 is not visible,
+	 * we determine this device is not setuped for PV mode */
+	return !paravirt->mmio;
+}

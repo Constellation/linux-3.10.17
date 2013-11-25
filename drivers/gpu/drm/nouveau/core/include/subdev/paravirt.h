@@ -27,7 +27,6 @@ enum {
 
 struct nouveau_paravirt {
 	struct nouveau_subdev base;
-	struct nouveau_device *device;
 	spinlock_t lock;
 	spinlock_t slot_lock;
 	u8 __iomem *slot;
