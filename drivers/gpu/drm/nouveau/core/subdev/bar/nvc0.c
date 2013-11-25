@@ -154,7 +154,7 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	if (ret)
 		return ret;
 	if (paravirt)
-		nouveau_paravirt_bar3_pgt(paravirt, vm->pgt[0].obj[0]);
+		nouveau_paravirt_bar3_pgt(paravirt, nv_paravirt_gpuobj(vm->pgt[0].obj[0]));
 
 	ret = nouveau_vm_ref(vm, &priv->bar[0].vm, priv->bar[0].pgd);
 	nouveau_vm_ref(NULL, &vm, NULL);
@@ -211,7 +211,6 @@ nvc0_bar_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	priv->base.unmap = nvc0_bar_unmap;
 	priv->base.flush = nv84_bar_flush;
 	spin_lock_init(&priv->lock);
-	return -EINVAL;
 	return 0;
 }
 
