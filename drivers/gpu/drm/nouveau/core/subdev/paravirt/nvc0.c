@@ -105,9 +105,9 @@ int nouveau_paravirt_call(struct nouveau_paravirt *paravirt, struct nouveau_para
 }
 
 #if 0
-int nouveau_paravirt_mem_new(struct nouveau_paravirt *paravirt, u32 size, struct nouveau_paravirt_mem **ret)
+int nouveau_paravirt_gpuobj_new(struct nouveau_paravirt *paravirt, u32 size, struct nouveau_paravirt_gpuobj **ret)
 {
-	struct nouveau_paravirt_mem* obj;
+	struct nouveau_paravirt_gpuobj* obj;
 
 	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
 	if (!obj)
@@ -125,12 +125,12 @@ int nouveau_paravirt_mem_new(struct nouveau_paravirt *paravirt, u32 size, struct
 		nouveau_paravirt_call(dev, slot);
 
 		ret = slot->u32[0];
-		obj->id = slot->u32[1];
+		obj->paravirt_id = slot->u32[1];
 
 		nouveau_paravirt_free_slot(dev, slot);
 
 		if (ret) {
-			nouveau_paravirt_mem_ref(NULL, &obj);
+			nouveau_paravirt_gpuobj_ref(NULL, &obj);
 			return ret;
 		}
 	}
@@ -139,38 +139,38 @@ int nouveau_paravirt_mem_new(struct nouveau_paravirt *paravirt, u32 size, struct
 	return 0;
 }
 
-static void nouveau_paravirt_mem_del(struct kref *ref)
+static void nouveau_paravirt_gpuobj_del(struct kref *ref)
 {
-	struct nouveau_paravirt_mem *obj = container_of(ref, struct nouveau_paravirt_mem, refcount);
+	struct nouveau_paravirt_gpuobj *obj = container_of(ref, struct nouveau_paravirt_gpuobj, refcount);
 	struct drm_device* dev = obj->dev;
 	{
 		struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(dev);
 		slot->u8[0] = NOUVEAU_PV_OP_MEM_FREE;
-		slot->u32[1] = obj->id;
+		slot->u32[1] = obj->paravirt_id;
 		nouveau_paravirt_call(dev, slot);
 		nouveau_paravirt_free_slot(dev, slot);
 	}
 	kfree(obj);
 }
 
-void nouveau_paravirt_mem_ref(struct nouveau_paravirt_mem *ref, struct nouveau_paravirt_mem **ptr)
+void nouveau_paravirt_gpuobj_ref(struct nouveau_paravirt_gpuobj *ref, struct nouveau_paravirt_gpuobj **ptr)
 {
 	if (ref)
 		kref_get(&ref->refcount);
 
 	if (*ptr)
-		kref_put(&(*ptr)->refcount, nouveau_paravirt_mem_del);
+		kref_put(&(*ptr)->refcount, nouveau_paravirt_gpuobj_del);
 
 	*ptr = ref;
 }
 #endif
 
-int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, struct nouveau_channel* chan, struct nouveau_paravirt_mem* pgd, int id)
+int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, struct nouveau_channel* chan, struct nouveau_paravirt_gpuobj* pgd, int id)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_SET_PGD;
-	slot->u32[1] = pgd->id;
+	slot->u32[1] = pgd->paravirt_id;
 	slot->u32[2] = id;
 	nouveau_paravirt_call(paravirt, slot);
 
@@ -181,14 +181,14 @@ int nouveau_paravirt_set_pgd(struct nouveau_paravirt* paravirt, struct nouveau_c
 	return ret;
 }
 
-int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt* paravirt, struct nouveau_paravirt_mem *pgd, u32 index, struct nouveau_paravirt_mem *pgt[2])
+int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt* paravirt, struct nouveau_paravirt_gpuobj *pgd, u32 index, struct nouveau_paravirt_gpuobj *pgt[2])
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_MAP_PGT;
-	slot->u32[1] = pgd->id;
-	slot->u32[2] = (pgt[0]) ? pgt[0]->id : 0;
-	slot->u32[3] = (pgt[1]) ? pgt[1]->id : 0;
+	slot->u32[1] = pgd->paravirt_id;
+	slot->u32[2] = (pgt[0]) ? pgt[0]->paravirt_id : 0;
+	slot->u32[3] = (pgt[1]) ? pgt[1]->paravirt_id : 0;
 	slot->u32[4] = index;
 	nouveau_paravirt_call(paravirt, slot);
 
@@ -199,12 +199,12 @@ int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt* paravirt, struct nouveau_p
 	return ret;
 }
 
-int nouveau_paravirt_map(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_mem *pgt, u32 index, u64 phys)
+int nouveau_paravirt_map(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_gpuobj *pgt, u32 index, u64 phys)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_MAP;
-	slot->u32[1] = pgt->id;
+	slot->u32[1] = pgt->paravirt_id;
 	slot->u32[2] = index;
 	slot->u64[2] = phys;
 	nouveau_paravirt_call(paravirt, slot);
@@ -216,12 +216,12 @@ int nouveau_paravirt_map(struct nouveau_paravirt *paravirt, struct nouveau_parav
 	return ret;
 }
 
-int nouveau_paravirt_map_batch(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_mem *pgt, u32 index, u64 phys, u32 next, u32 count)
+int nouveau_paravirt_map_batch(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_gpuobj *pgt, u32 index, u64 phys, u32 next, u32 count)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_MAP_BATCH;
-	slot->u32[1] = pgt->id;
+	slot->u32[1] = pgt->paravirt_id;
 	slot->u32[2] = index;
 	slot->u32[3] = next;
 	slot->u32[4] = count;
@@ -234,7 +234,7 @@ int nouveau_paravirt_map_batch(struct nouveau_paravirt *paravirt, struct nouveau
 	return ret;
 }
 
-int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_mem *pgt, u32 index, struct nouveau_vma *vma, struct nouveau_mem *mem, dma_addr_t *list, u32 count)
+int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_gpuobj *pgt, u32 index, struct nouveau_vma *vma, struct nouveau_mem *mem, dma_addr_t *list, u32 count)
 {
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	const u32 filled = count / NOUVEAU_PV_BATCH_SIZE;
@@ -246,7 +246,7 @@ int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *paravirt, struct nouv
 		u32 i, j;
 		for (i = 0; i < filled; ++i) {
 			slot->u8[0] = NOUVEAU_PV_OP_MAP_SG_BATCH;
-			slot->u32[1] = pgt->id;
+			slot->u32[1] = pgt->paravirt_id;
 			slot->u32[2] = index + NOUVEAU_PV_BATCH_SIZE * i;
 			slot->u32[3] = NOUVEAU_PV_BATCH_SIZE;
 			for (j = 0; j < NOUVEAU_PV_BATCH_SIZE; ++j) {
@@ -265,7 +265,7 @@ int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *paravirt, struct nouv
 		int ret;
 		u32 i;
 		slot->u8[0] = NOUVEAU_PV_OP_MAP_SG_BATCH;
-		slot->u32[1] = pgt->id;
+		slot->u32[1] = pgt->paravirt_id;
 		slot->u32[2] = index + NOUVEAU_PV_BATCH_SIZE * filled;
 		slot->u32[3] = rest;
 		for (i = 0; i < rest; ++i) {
@@ -283,12 +283,12 @@ int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *paravirt, struct nouv
 	return 0;
 }
 
-int nouveau_paravirt_unmap_batch(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_mem *pgt, u32 index, u32 count)
+int nouveau_paravirt_unmap_batch(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_gpuobj *pgt, u32 index, u32 count)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_UNMAP_BATCH;
-	slot->u32[1] = pgt->id;
+	slot->u32[1] = pgt->paravirt_id;
 	slot->u32[2] = index;
 	slot->u32[3] = count;
 	nouveau_paravirt_call(paravirt, slot);
@@ -299,12 +299,12 @@ int nouveau_paravirt_unmap_batch(struct nouveau_paravirt *paravirt, struct nouve
 	return ret;
 }
 
-int nouveau_paravirt_vm_flush(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_mem *pgd, u32 engine)
+int nouveau_paravirt_vm_flush(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_gpuobj *pgd, u32 engine)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_VM_FLUSH;
-	slot->u32[1] = pgd->id;
+	slot->u32[1] = pgd->paravirt_id;
 	slot->u32[2] = engine;
 	nouveau_paravirt_call(paravirt, slot);
 
@@ -315,12 +315,12 @@ int nouveau_paravirt_vm_flush(struct nouveau_paravirt *paravirt, struct nouveau_
 	return ret;
 }
 
-int nouveau_paravirt_bar3_pgt(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_mem *pgt)
+int nouveau_paravirt_bar3_pgt(struct nouveau_paravirt *paravirt, struct nouveau_paravirt_gpuobj *pgt)
 {
 	int ret;
 	struct nouveau_paravirt_slot* slot = nouveau_paravirt_alloc_slot(paravirt);
 	slot->u8[0] = NOUVEAU_PV_OP_BAR3_PGT;
-	slot->u32[1] = pgt->id;
+	slot->u32[1] = pgt->paravirt_id;
 	nouveau_paravirt_call(paravirt, slot);
 
 	ret = slot->u32[0];

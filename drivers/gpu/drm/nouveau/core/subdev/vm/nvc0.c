@@ -29,6 +29,7 @@
 #include <subdev/fb.h>
 #include <subdev/vm.h>
 #include <subdev/ltcg.h>
+#include <subdev/paravirt.h>
 
 struct nvc0_vmmgr_priv {
 	struct nouveau_vmmgr base;
@@ -223,6 +224,11 @@ nvc0_vmmgr_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	priv->base.pgt_bits  = 27 - 12;
 	priv->base.spg_shift = 12;
 	priv->base.lpg_shift = 17;
+
+	if (nouveau_paravirt(parent)) {
+		nv_warn(parent, "paravirt is enabled\n");
+	}
+
 	priv->base.create = nvc0_vm_create;
 	priv->base.map_pgt = nvc0_vm_map_pgt;
 	priv->base.map = nvc0_vm_map;

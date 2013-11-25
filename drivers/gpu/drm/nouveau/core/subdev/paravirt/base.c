@@ -24,9 +24,19 @@
 
 #include <subdev/paravirt.h>
 
-int nouveau_paravirt_enabled(struct nouveau_paravirt *paravirt)
-{
-	/* If BAR4 is not visible,
-	 * we determine this device is not setuped for PV mode */
-	return !paravirt->mmio;
-}
+static struct nouveau_oclass
+nouveau_paravirt_mem_oclass = {
+	.handle = 0x00000000,
+	.ofuncs = &(struct nouveau_ofuncs) {
+		/*
+		.ctor = _nouveau_gpuobj_ctor,
+		.dtor = _nouveau_gpuobj_dtor,
+		.init = _nouveau_gpuobj_init,
+		.fini = _nouveau_gpuobj_fini,
+		.rd32 = _nouveau_gpuobj_rd32,
+		.wr32 = _nouveau_gpuobj_wr32,
+		*/
+	},
+};
+
+

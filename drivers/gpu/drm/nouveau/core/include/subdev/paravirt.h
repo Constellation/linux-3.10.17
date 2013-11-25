@@ -3,6 +3,7 @@
 
 #include <core/subdev.h>
 #include <core/device.h>
+#include <core/gpuobj.h>
 #include <subdev/fb.h>
 
 #define NOUVEAU_PV_REG_BAR 4
@@ -35,6 +36,7 @@ struct nouveau_paravirt {
 	struct semaphore sema;
 };
 
+/* If ParaVirt is not enabled, returns NULL */
 static inline struct nouveau_paravirt *
 nouveau_paravirt(void *obj)
 {
@@ -52,34 +54,32 @@ struct nouveau_paravirt_slot {
 	};
 };
 
-struct nouveau_paravirt_mem {
-	struct nouveau_paravirt *dev;
-	struct kref refcount;
-	u32 id;
-	u32 size;
+struct nouveau_paravirt_gpuobj {
+	struct nouveau_gpuobj base;
+	u32 paravirt_id;
 };
+
+extern struct nouveau_oclass nouveau_paravirt_gpuobj_class;
 
 struct nouveau_channel;
 struct nouveau_vma;
 struct nouveau_mem;
 
-int nouveau_paravirt_enabled(struct nouveau_paravirt *);
-
 struct nouveau_paravirt_slot* nouveau_paravirt_alloc_slot(struct nouveau_paravirt *);
 void nouveau_paravirt_free_slot(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
 int nouveau_paravirt_call(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
 
-int nouveau_paravirt_mem_new(struct nouveau_paravirt *, u32 size, struct nouveau_paravirt_mem **);
-void nouveau_paravirt_mem_ref(struct nouveau_paravirt_mem *, struct nouveau_paravirt_mem **);
+int nouveau_paravirt_gpuobj_new(struct nouveau_paravirt *, u32 size, struct nouveau_paravirt_gpuobj **);
+void nouveau_paravirt_gpuobj_ref(struct nouveau_paravirt_gpuobj *, struct nouveau_paravirt_gpuobj **);
 
-int nouveau_paravirt_set_pgd(struct nouveau_paravirt *, struct nouveau_channel*, struct nouveau_paravirt_mem*, int id);
-int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt *, struct nouveau_paravirt_mem *pgd, u32 index, struct nouveau_paravirt_mem *pgt[2]);
-int nouveau_paravirt_map(struct nouveau_paravirt *, struct nouveau_paravirt_mem *pgt, u32 index, u64 phys);
-int nouveau_paravirt_map_batch(struct nouveau_paravirt *, struct nouveau_paravirt_mem *pgt, u32 index, u64 phys, u32 next, u32 count);
-int nouveau_paravirt_unmap_batch(struct nouveau_paravirt *, struct nouveau_paravirt_mem *pgt, u32 index, u32 count);
-int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *, struct nouveau_paravirt_mem *pgt, u32 index, struct nouveau_vma *vma, struct nouveau_mem *mem, dma_addr_t *list, u32 count);
-int nouveau_paravirt_vm_flush(struct nouveau_paravirt *, struct nouveau_paravirt_mem* pgd, u32 engine);
-int nouveau_paravirt_bar3_pgt(struct nouveau_paravirt *, struct nouveau_paravirt_mem *pgt);
+int nouveau_paravirt_set_pgd(struct nouveau_paravirt *, struct nouveau_channel*, struct nouveau_paravirt_gpuobj*, int id);
+int nouvaeu_paravirt_map_pgt(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgd, u32 index, struct nouveau_paravirt_gpuobj *pgt[2]);
+int nouveau_paravirt_map(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt, u32 index, u64 phys);
+int nouveau_paravirt_map_batch(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt, u32 index, u64 phys, u32 next, u32 count);
+int nouveau_paravirt_unmap_batch(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt, u32 index, u32 count);
+int nouveau_paravirt_map_sg_batch(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt, u32 index, struct nouveau_vma *vma, struct nouveau_mem *mem, dma_addr_t *list, u32 count);
+int nouveau_paravirt_vm_flush(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj* pgd, u32 engine);
+int nouveau_paravirt_bar3_pgt(struct nouveau_paravirt *, struct nouveau_paravirt_gpuobj *pgt);
 
 #define nouveau_paravirt_create(p,e,o,d)                                          \
 	nouveau_subdev_create((p), (e), (o), 0, "PARAVIRT", "paravirt", d)
