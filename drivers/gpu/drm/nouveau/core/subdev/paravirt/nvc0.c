@@ -61,6 +61,13 @@ static inline u32 slot_pos(struct nouveau_paravirt *paravirt, struct nouveau_par
 	return (slot->u8 - paravirt->slot) / NOUVEAU_PV_SLOT_SIZE;
 }
 
+int nouveau_paravirt_enabled(struct nouveau_paravirt *paravirt)
+{
+	/* If BAR4 is not visible,
+	 * we determine this device is not setuped for PV mode */
+	return !paravirt->mmio;
+}
+
 struct nouveau_paravirt_slot* nouveau_paravirt_alloc_slot(struct nouveau_paravirt *paravirt)
 {
 	u32 pos;
@@ -369,10 +376,13 @@ nvc0_paravirt_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	address = __pa(paravirt->slot);  /* convert kmalloc-ed virt to phys */
 	nvpv_wr32(paravirt, 0x4, lower_32_bits(address));
 	nvpv_wr32(paravirt, 0x8, upper_32_bits(address));
-	if (nvpv_rd32(paravirt, 0x0) != 0x0)
+	if (nvpv_rd32(paravirt, 0x0) != 0x0) {
+		iounmap(paravirt->mmio);
+		paravirt->mmio = NULL;
 		return -ENODEV;
+	}
 
-	return -ENODEV;
+	return -EINVAL;
 
 	return 0;
 }

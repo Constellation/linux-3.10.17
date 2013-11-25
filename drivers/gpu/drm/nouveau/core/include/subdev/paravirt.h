@@ -64,6 +64,8 @@ struct nouveau_channel;
 struct nouveau_vma;
 struct nouveau_mem;
 
+int nouveau_paravirt_enabled(struct nouveau_paravirt *);
+
 struct nouveau_paravirt_slot* nouveau_paravirt_alloc_slot(struct nouveau_paravirt *);
 void nouveau_paravirt_free_slot(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
 int nouveau_paravirt_call(struct nouveau_paravirt *, struct nouveau_paravirt_slot *);
