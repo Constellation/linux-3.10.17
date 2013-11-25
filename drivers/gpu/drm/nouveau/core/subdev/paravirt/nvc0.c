@@ -373,8 +373,6 @@ nvc0_paravirt_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 		return -ENODEV;
 	}
 
-	return -EINVAL;
-
 	return 0;
 }
 

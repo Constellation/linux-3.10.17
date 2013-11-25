@@ -44,19 +44,19 @@ nouveau_paravirt(void *obj)
 extern struct nouveau_oclass nvc0_paravirt_oclass;
 
 struct nouveau_paravirt_slot {
-  union {
-    u8   u8[NOUVEAU_PV_SLOT_SIZE / sizeof(u8) ];
-    u16 u16[NOUVEAU_PV_SLOT_SIZE / sizeof(u16)];
-    u32 u32[NOUVEAU_PV_SLOT_SIZE / sizeof(u32)];
-    u64 u64[NOUVEAU_PV_SLOT_SIZE / sizeof(u64)];
-  };
+	union {
+		u8   u8[NOUVEAU_PV_SLOT_SIZE / sizeof(u8) ];
+		u16 u16[NOUVEAU_PV_SLOT_SIZE / sizeof(u16)];
+		u32 u32[NOUVEAU_PV_SLOT_SIZE / sizeof(u32)];
+		u64 u64[NOUVEAU_PV_SLOT_SIZE / sizeof(u64)];
+	};
 };
 
 struct nouveau_paravirt_mem {
-  struct nouveau_paravirt *dev;
-  struct kref refcount;
-  u32 id;
-  u32 size;
+	struct nouveau_paravirt *dev;
+	struct kref refcount;
+	u32 id;
+	u32 size;
 };
 
 struct nouveau_channel;
