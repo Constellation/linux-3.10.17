@@ -97,6 +97,11 @@ nvc0_vm_paravirt_map_pgt(struct nouveau_gpuobj *pgd, u32 index,
 			 struct nouveau_gpuobj *pgt[2])
 {
 	/* assert pgd and pgt is paravirt_gpuobj */
+	struct nouveau_paravirt_gpuobj *pgt2[2] = {
+		(struct nouveau_paravirt_gpuobj*)pgt[0],
+		(struct nouveau_paravirt_gpuobj*)pgt[1]
+	};
+	nouvaeu_paravirt_map_pgt(nouveau_paravirt(pgd), nv_paravirt_gpuobj(pgd), index, pgt2);
 }
 
 static inline u64
@@ -141,6 +146,15 @@ nvc0_vm_map(struct nouveau_vma *vma, struct nouveau_gpuobj *pgt,
 }
 
 static void
+nvc0_vm_paravirt_map(struct nouveau_vma *vma, struct nouveau_gpuobj *pgt,
+		     struct nouveau_mem *mem, u32 pte, u32 cnt, u64 phys, u64 delta)
+{
+	u32 next = 1 << (vma->node->type - 8);
+	phys  = nvc0_vm_addr(vma, phys, mem->memtype, 0);
+	nouveau_paravirt_map_batch(nouveau_paravirt(vma), nv_paravirt_gpuobj(pgt), pte, phys, next, cnt);
+}
+
+static void
 nvc0_vm_map_sg(struct nouveau_vma *vma, struct nouveau_gpuobj *pgt,
 	       struct nouveau_mem *mem, u32 pte, u32 cnt, dma_addr_t *list)
 {
@@ -158,6 +172,13 @@ nvc0_vm_map_sg(struct nouveau_vma *vma, struct nouveau_gpuobj *pgt,
 }
 
 static void
+nvc0_vm_paravirt_map_sg(struct nouveau_vma *vma, struct nouveau_gpuobj *pgt,
+			struct nouveau_mem *mem, u32 pte, u32 cnt, dma_addr_t *list)
+{
+	nouveau_paravirt_map_sg_batch(nouveau_paravirt(vma), nv_paravirt_gpuobj(pgt), pte, vma, mem, list, cnt);
+}
+
+static void
 nvc0_vm_unmap(struct nouveau_gpuobj *pgt, u32 pte, u32 cnt)
 {
 	pte <<= 3;
@@ -166,6 +187,12 @@ nvc0_vm_unmap(struct nouveau_gpuobj *pgt, u32 pte, u32 cnt)
 		nv_wo32(pgt, pte + 4, 0x00000000);
 		pte += 8;
 	}
+}
+
+static void
+nvc0_vm_paravirt_unmap(struct nouveau_gpuobj *pgt, u32 pte, u32 cnt)
+{
+	nouveau_paravirt_unmap_batch(nouveau_paravirt(pgt), nv_paravirt_gpuobj(pgt), pte, cnt);
 }
 
 void
@@ -204,6 +231,31 @@ nvc0_vm_flush(struct nouveau_vm *vm)
 	}
 }
 
+void
+nvc0_vm_paravirt_flush_engine(struct nouveau_subdev *subdev, struct nouveau_paravirt_gpuobj* obj, int type)
+{
+	struct nvc0_vmmgr_priv *priv = (void *)nouveau_vmmgr(subdev);
+	unsigned long flags;
+
+	/* looks like maybe a "free flush slots" counter, the
+	 * faster you write to 0x100cbc to more it decreases
+	 */
+	spin_lock_irqsave(&priv->lock, flags);
+	nouveau_paravirt_vm_flush(nouveau_paravirt(subdev), obj, type);
+	spin_unlock_irqrestore(&priv->lock, flags);
+}
+
+
+static void
+nvc0_vm_paravirt_flush(struct nouveau_vm *vm)
+{
+	struct nouveau_vm_pgd *vpgd;
+
+	list_for_each_entry(vpgd, &vm->pgd_list, head) {
+		nvc0_vm_paravirt_flush_engine(nv_subdev(vm->vmm), nv_paravirt_gpuobj(vpgd->obj), 1);
+	}
+}
+
 static int
 nvc0_vm_create(struct nouveau_vmmgr *vmm, u64 offset, u64 length,
 	       u64 mm_offset, struct nouveau_vm **pvm)
@@ -234,24 +286,21 @@ nvc0_vmmgr_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 
 	if (nouveau_paravirt(parent)) {
 		nv_warn(parent, "paravirt is enabled\n");
-	}
-#if 0
+		priv->base.create = nvc0_vm_create;
 		priv->base.map_pgt = nvc0_vm_paravirt_map_pgt;
 		priv->base.map = nvc0_vm_paravirt_map;
 		priv->base.map_sg = nvc0_vm_paravirt_map_sg;
 		priv->base.unmap = nvc0_vm_paravirt_unmap;
 		priv->base.flush = nvc0_vm_paravirt_flush;
 	} else {
-#endif
 		priv->base.create = nvc0_vm_create;
 		priv->base.map_pgt = nvc0_vm_map_pgt;
 		priv->base.map = nvc0_vm_map;
 		priv->base.map_sg = nvc0_vm_map_sg;
 		priv->base.unmap = nvc0_vm_unmap;
 		priv->base.flush = nvc0_vm_flush;
-#if 0
 	}
-#endif
+
 	spin_lock_init(&priv->lock);
 	return 0;
 }
