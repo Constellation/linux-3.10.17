@@ -648,7 +648,6 @@ nvc0_fifo_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
 	int ret;
 
 	nv_warn(parent, "[%s]\n", __PRETTY_FUNCTION__);
-	return -EINVAL;
 
 	ret = nouveau_fifo_create(parent, engine, oclass, 0, 127, &priv);
 	*pobject = nv_object(priv);
