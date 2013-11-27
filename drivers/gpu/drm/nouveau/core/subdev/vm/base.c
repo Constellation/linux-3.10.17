@@ -250,7 +250,7 @@ nouveau_vm_map_pgt(struct nouveau_vm *vm, u32 pde, u32 type)
 	struct nouveau_vm_pgt *vpgt = &vm->pgt[pde - vm->fpde];
 	struct nouveau_vm_pgd *vpgd;
 	struct nouveau_gpuobj *pgt;
-	struct nouveau_paravirt *paravirt;
+	struct nouveau_paravirt *paravirt = nouveau_paravirt(vmm);
 	int big = (type != vmm->spg_shift);
 	u32 pgt_size;
 	int ret;
@@ -259,7 +259,7 @@ nouveau_vm_map_pgt(struct nouveau_vm *vm, u32 pde, u32 type)
 	pgt_size *= 8;
 
 	mutex_unlock(&vm->mm.mutex);
-	if ((paravirt = nouveau_paravirt(vm))) {
+	if (paravirt) {
 		ret = nouveau_paravirt_gpuobj_new(nv_object(vm->vmm), pgt_size, 0x1000,
 						  NVOBJ_FLAG_ZERO_ALLOC, &pgt);
 	} else {

@@ -56,6 +56,7 @@ nouveau_paravirt_gpuobj_create_(struct nouveau_object *parent,
 	object->base.flags = flags;
 	object->base.addr = 0xdeadbeef;  /* dummy */
 	object->base.size = size;
+	object->paravirt_id = 0xdeadbeef;  /* dummy */
 
 	return 0;
 }
@@ -91,6 +92,8 @@ _nouveau_paravirt_gpuobj_ctor(struct nouveau_object *parent,
 	object->paravirt_id = slot->u32[1];
 
 	nouveau_paravirt_free_slot(paravirt, slot);
+
+	BUG_ON(object->paravirt_id == 0);
 
 	if (ret) {
 		nouveau_object_dec(nv_object(object), false);

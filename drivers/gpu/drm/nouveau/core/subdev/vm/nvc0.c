@@ -175,7 +175,7 @@ static void
 nvc0_vm_paravirt_map_sg(struct nouveau_vma *vma, struct nouveau_gpuobj *pgt,
 			struct nouveau_mem *mem, u32 pte, u32 cnt, dma_addr_t *list)
 {
-	nouveau_paravirt_map_sg_batch(nouveau_paravirt(pgt), nv_paravirt_gpuobj(pgt), pte, vma, mem, list, cnt);
+	nouveau_paravirt_map_sg_batch(nouveau_paravirt(vma->vm->vmm), nv_paravirt_gpuobj(pgt), pte, vma, mem, list, cnt);
 }
 
 static void
