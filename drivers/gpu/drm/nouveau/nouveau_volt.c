@@ -80,14 +80,18 @@ nouveau_volt_vid_lookup(struct drm_device *dev, int voltage)
 	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nouveau_pm_voltage *volt = &nouveau_pm(dev)->voltage;
 	int i;
+	int delta = INT_MAX;
+	int vid = -ENOENT;
 
 	for (i = 0; i < volt->nr_level; i++) {
 		NV_WARN(drm, "voltage check %d == %d\n", (int)(volt->level[i].voltage), (int)(voltage));
-		if (volt->level[i].voltage == voltage)
-			return volt->level[i].vid;
+		if (volt->level[i].voltage >= voltage && (volt->level[i].voltage - voltage) < delta) {
+			delta = (volt->level[i].voltage - voltage);
+			vid = volt->level[i].vid;
+		}
 	}
 
-	return -ENOENT;
+	return vid;
 }
 
 int
