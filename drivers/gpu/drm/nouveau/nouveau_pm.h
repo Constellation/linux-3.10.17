@@ -40,6 +40,8 @@ struct nouveau_pm_voltage {
 
 	struct nouveau_pm_voltage_level *level;
 	int nr_level;
+	u16 step_uv;
+	u16 step_ofs;
 };
 
 /* Exclusive upper limits */

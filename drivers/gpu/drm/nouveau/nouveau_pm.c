@@ -1106,6 +1106,7 @@ nouveau_pm_init(struct drm_device *dev)
 	pm->cur = &pm->boot;
 
 	/* add performance levels from vbios */
+	NV_INFO(drm, "start nouveau perf init\n");
 	nouveau_perf_init(dev);
 
 	/* display available performance levels */

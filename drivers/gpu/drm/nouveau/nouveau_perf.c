@@ -36,7 +36,9 @@ nouveau_perf_table(struct drm_device *dev, u8 *ver)
 	struct bit_entry P;
 
 	if (!bit_table(dev, 'P', &P) && P.version && P.version <= 2) {
-		u8 *perf = ROMPTR(dev, P.data[0]);
+		u16 offset = ROM16(P.data[0]);
+		u8 *perf = ROMPTR(dev, offset);
+		nv_warn(drm, "[%s] perf offset 0x%x\n", __PRETTY_FUNCTION__, ROM16(P.data[0]));
 		if (perf) {
 			*ver = perf[0];
 			return perf;
@@ -60,6 +62,7 @@ static u8 *
 nouveau_perf_entry(struct drm_device *dev, int idx,
 		   u8 *ver, u8 *hdr, u8 *cnt, u8 *len)
 {
+	struct nouveau_drm *drm = nouveau_drm(dev);
 	u8 *perf = nouveau_perf_table(dev, ver);
 	if (perf) {
 		if (*ver >= 0x12 && *ver < 0x20 && idx < perf[2]) {
@@ -69,6 +72,7 @@ nouveau_perf_entry(struct drm_device *dev, int idx,
 			return perf + perf[0] + idx * perf[3];
 		} else
 		if (*ver >= 0x20 && *ver < 0x40 && idx < perf[2]) {
+			nv_warn(drm, "[%s] perf table version is 2\n", __PRETTY_FUNCTION__);
 			*hdr = perf[3];
 			*cnt = perf[4];
 			*len = perf[5];
@@ -93,7 +97,8 @@ nouveau_perf_rammap(struct drm_device *dev, u32 freq,
 	u8 *perf, i = 0;
 
 	if (!bit_table(dev, 'P', &P) && P.version == 2) {
-		u8 *rammap = ROMPTR(dev, P.data[4]);
+		u16 offset = ROM16(P.data[4]);
+		u8 *rammap = ROMPTR(dev, offset);
 		if (rammap) {
 			u8 *ramcfg = rammap + rammap[1];
 
@@ -182,11 +187,13 @@ nouveau_perf_timing(struct drm_device *dev, u32 freq, u8 *ver, u8 *len)
 	}
 
 	if (!bit_table(dev, 'P', &P)) {
-		if (P.version == 1)
-			timing = ROMPTR(dev, P.data[4]);
-		else
-		if (P.version == 2)
-			timing = ROMPTR(dev, P.data[8]);
+		if (P.version == 1) {
+			u16 offset = ROM16(P.data[4]);
+			timing = ROMPTR(dev, offset);
+		} else if (P.version == 2) {
+			u16 offset = ROM16(P.data[8]);
+			timing = ROMPTR(dev, offset);
+		}
 	}
 
 	if (timing && timing[0] == 0x10) {
@@ -251,9 +258,11 @@ static void
 nouveau_perf_voltage(struct drm_device *dev, struct nouveau_pm_level *perflvl)
 {
 	struct nouveau_drm *drm = nouveau_drm(dev);
+	struct nouveau_pm_voltage *voltage = &drm->pm->voltage;
 	struct bit_entry P;
 	u8 *vmap;
 	int id;
+	u16 offset;
 
 	id = perflvl->volt_min;
 	perflvl->volt_min = 0;
@@ -262,6 +271,7 @@ nouveau_perf_voltage(struct drm_device *dev, struct nouveau_pm_level *perflvl)
 	 * level directly in the perflvl entry as a multiple of 10mV
 	 */
 	if (drm->pm->voltage.version < 0x40) {
+		NV_WARN(drm, "lower voltage version\n");
 		perflvl->volt_min = id * 10000;
 		perflvl->volt_max = perflvl->volt_min;
 		return;
@@ -271,21 +281,38 @@ nouveau_perf_voltage(struct drm_device *dev, struct nouveau_pm_level *perflvl)
 	 * vbios table containing a min/max voltage value for the perflvl
 	 */
 	if (bit_table(dev, 'P', &P) || P.version != 2 || P.length < 34) {
-		NV_DEBUG(drm, "where's our volt map table ptr? %d %d\n",
+		NV_WARN(drm, "where's our volt map table ptr? %d %d\n",
 			 P.version, P.length);
 		return;
 	}
 
-	vmap = ROMPTR(dev, P.data[32]);
+	offset = ROM16(P.data[32]);
+	vmap = ROMPTR(dev, offset);
 	if (!vmap) {
-		NV_DEBUG(drm, "volt map table pointer invalid\n");
+		NV_WARN(drm, "volt map table pointer invalid\n");
 		return;
 	}
 
+	NV_WARN(drm, "volt map table pointer [%d]...\n", id);
 	if (id < vmap[3]) {
 		vmap += vmap[1] + (vmap[2] * id);
 		perflvl->volt_min = ROM32(vmap[0]);
 		perflvl->volt_max = ROM32(vmap[4]);
+		NV_WARN(drm, "volt range %u / %u\n", (unsigned)(perflvl->volt_min), (unsigned)(perflvl->volt_max));
+	}
+
+	/* Adjust for buggy bioses */
+	if (!voltage->step_uv || !voltage->step_ofs)
+		return;
+
+	if (perflvl->volt_min % voltage->step_uv != voltage->step_ofs) {
+		perflvl->volt_min -= perflvl->volt_min % voltage->step_uv;
+		perflvl->volt_min += voltage->step_ofs;
+	}
+
+	if (perflvl->volt_max % voltage->step_uv != voltage->step_ofs) {
+		perflvl->volt_max -= perflvl->volt_max % voltage->step_uv;
+		perflvl->volt_max += voltage->step_ofs;
 	}
 }
 
@@ -298,19 +325,24 @@ nouveau_perf_init(struct drm_device *dev)
 	u8 *perf, ver, hdr, cnt, len;
 	int ret, vid, i = -1;
 
+	nv_warn(drm, "[%s]\n", __PRETTY_FUNCTION__);
+
 	if (bios->type == NVBIOS_BMP && bios->data[bios->offset + 6] < 0x25) {
+		nv_warn(drm, "[%s] legacy init\n", __PRETTY_FUNCTION__);
 		legacy_perf_init(dev);
 		return;
 	}
 
 	perf = nouveau_perf_table(dev, &ver);
 
+	nv_warn(drm, "[%s] perf table scan is done\n", __PRETTY_FUNCTION__);
 	while ((perf = nouveau_perf_entry(dev, ++i, &ver, &hdr, &cnt, &len))) {
 		struct nouveau_pm_level *perflvl = &pm->perflvl[pm->nr_perflvl];
 
 		if (perf[0] == 0xff)
 			continue;
 
+		nv_warn(drm, "[%s] perf table version %d\n", __PRETTY_FUNCTION__, (int)(ver));
 		switch (ver) {
 		case 0x12:
 		case 0x13:
@@ -355,6 +387,7 @@ nouveau_perf_init(struct drm_device *dev)
 			break;
 		case 0x40:
 #define subent(n) ((ROM16(perf[hdr + (n) * len]) & 0xfff) * 1000)
+			nv_warn(drm, "[%s] this is the perf table for 0x40\n", __PRETTY_FUNCTION__);
 			perflvl->fanspeed = 0; /*XXX*/
 			perflvl->volt_min = perf[2];
 			if (nv_device(drm->device)->card_type == NV_50) {
@@ -383,7 +416,7 @@ nouveau_perf_init(struct drm_device *dev)
 		if (pm->voltage.supported && perflvl->volt_min) {
 			vid = nouveau_volt_vid_lookup(dev, perflvl->volt_min);
 			if (vid < 0) {
-				NV_DEBUG(drm, "perflvl %d, bad vid\n", i);
+				NV_WARN(drm, "perflvl %d, bad vid\n", i);
 				continue;
 			}
 		}
@@ -392,7 +425,7 @@ nouveau_perf_init(struct drm_device *dev)
 		ret = nouveau_mem_timing_calc(dev, perflvl->memory,
 					          &perflvl->timing);
 		if (ret) {
-			NV_DEBUG(drm, "perflvl %d, bad timing: %d\n", i, ret);
+			NV_WARN(drm, "perflvl %d, bad timing: %d\n", i, ret);
 			continue;
 		}
 
@@ -408,6 +441,7 @@ nouveau_perf_init(struct drm_device *dev)
 
 		pm->nr_perflvl++;
 	}
+	nv_warn(drm, "[%s] perflvls %d\n", __PRETTY_FUNCTION__, pm->nr_perflvl);
 }
 
 void

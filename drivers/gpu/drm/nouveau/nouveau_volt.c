@@ -77,10 +77,12 @@ nouveau_voltage_gpio_set(struct drm_device *dev, int voltage)
 int
 nouveau_volt_vid_lookup(struct drm_device *dev, int voltage)
 {
+	struct nouveau_drm *drm = nouveau_drm(dev);
 	struct nouveau_pm_voltage *volt = &nouveau_pm(dev)->voltage;
 	int i;
 
 	for (i = 0; i < volt->nr_level; i++) {
+		NV_WARN(drm, "voltage check %d == %d\n", (int)(volt->level[i].voltage), (int)(voltage));
 		if (volt->level[i].voltage == voltage)
 			return volt->level[i].vid;
 	}
@@ -119,12 +121,13 @@ nouveau_volt_init(struct drm_device *dev)
 		if (bit_table(dev, 'P', &P))
 			return;
 
-		if (P.version == 1)
-			volt = ROMPTR(dev, P.data[16]);
-		else
-		if (P.version == 2)
-			volt = ROMPTR(dev, P.data[12]);
-		else {
+		if (P.version == 1) {
+			u16 offset = ROM16(P.data[16]);
+			volt = ROMPTR(dev, offset);
+		} else if (P.version == 2) {
+			u16 offset = ROM16(P.data[12]);
+			volt = ROMPTR(dev, offset);
+		} else {
 			NV_WARN(drm, "unknown volt for BIT P %d\n", P.version);
 		}
 	} else {
@@ -236,6 +239,10 @@ nouveau_volt_init(struct drm_device *dev)
 			voltage->level[vid].vid = vid;
 			volt_uv += step_uv;
 		}
+
+		voltage->step_uv = step_uv >= 0 ? step_uv : -step_uv;
+		if (step_uv)
+			voltage->step_ofs = volt_uv % voltage->step_uv;
 	}
 
 	voltage->supported = true;
