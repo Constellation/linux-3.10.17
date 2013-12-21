@@ -270,12 +270,14 @@ nouveau_perf_voltage(struct drm_device *dev, struct nouveau_pm_level *perflvl)
 	/* boards using voltage table version <0x40 store the voltage
 	 * level directly in the perflvl entry as a multiple of 10mV
 	 */
+    /*
 	if (drm->pm->voltage.version < 0x40) {
 		NV_WARN(drm, "lower voltage version\n");
 		perflvl->volt_min = id * 10000;
 		perflvl->volt_max = perflvl->volt_min;
 		return;
 	}
+    */
 
 	/* on newer ones, the perflvl stores an index into yet another
 	 * vbios table containing a min/max voltage value for the perflvl
