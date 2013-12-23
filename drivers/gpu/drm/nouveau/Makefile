@@ -23,6 +23,7 @@ nouveau-y += core/core/parent.o
 nouveau-y += core/core/printk.o
 nouveau-y += core/core/ramht.o
 nouveau-y += core/core/subdev.o
+nouveau-y += core/core/virt.o
 
 nouveau-y += core/subdev/bar/base.o
 nouveau-y += core/subdev/bar/nv50.o
