@@ -127,9 +127,6 @@ nouveau_devobj_ctor(struct nouveau_object *parent,
 	if (ret)
 		return ret;
 
-	mmio_base = pci_resource_start(device->pdev, 0);
-	mmio_size = pci_resource_len(device->pdev, 0);
-
 	/* translate api disable mask into internal mapping */
 	disable = args->debug0;
 	for (i = 0; i < NVDEV_SUBDEV_NR; i++) {
@@ -140,67 +137,9 @@ nouveau_devobj_ctor(struct nouveau_object *parent,
 	/* identify the chipset, and determine classes of subdev/engines */
 	if (!(args->disable & NV_DEVICE_DISABLE_IDENTIFY) &&
 	    !device->card_type) {
-		map = ioremap(mmio_base, 0x102000);
-		if (map == NULL)
-			return -ENOMEM;
-
-		/* switch mmio to cpu's native endianness */
-#ifndef __BIG_ENDIAN
-		if (ioread32_native(map + 0x000004) != 0x00000000)
-#else
-		if (ioread32_native(map + 0x000004) == 0x00000000)
-#endif
-			iowrite32_native(0x01000001, map + 0x000004);
-
-		/* read boot0 and strapping information */
-		boot0 = ioread32_native(map + 0x000000);
-		strap = ioread32_native(map + 0x101000);
-		iounmap(map);
-
-		/* determine chipset and derive architecture from it */
-		if ((boot0 & 0x0f000000) > 0) {
-			device->chipset = (boot0 & 0xff00000) >> 20;
-			switch (device->chipset & 0xf0) {
-			case 0x10: device->card_type = NV_10; break;
-			case 0x20: device->card_type = NV_20; break;
-			case 0x30: device->card_type = NV_30; break;
-			case 0x40:
-			case 0x60: device->card_type = NV_40; break;
-			case 0x50:
-			case 0x80:
-			case 0x90:
-			case 0xa0: device->card_type = NV_50; break;
-			case 0xc0: device->card_type = NV_C0; break;
-			case 0xd0: device->card_type = NV_D0; break;
-			case 0xe0:
-			case 0xf0: device->card_type = NV_E0; break;
-			default:
-				break;
-			}
-		} else
-		if ((boot0 & 0xff00fff0) == 0x20004000) {
-			if (boot0 & 0x00f00000)
-				device->chipset = 0x05;
-			else
-				device->chipset = 0x04;
-			device->card_type = NV_04;
-		}
-
-		switch (device->card_type) {
-		case NV_04: ret = nv04_identify(device); break;
-		case NV_10: ret = nv10_identify(device); break;
-		case NV_20: ret = nv20_identify(device); break;
-		case NV_30: ret = nv30_identify(device); break;
-		case NV_40: ret = nv40_identify(device); break;
-		case NV_50: ret = nv50_identify(device); break;
-		case NV_C0:
-		case NV_D0: ret = nvc0_identify(device); break;
-		case NV_E0: ret = nve0_identify(device); break;
-		default:
-			ret = -EINVAL;
-			break;
-		}
-
+        device->chipset = NV_C0;
+        device->card_type = NV_C0;
+		ret = nvc0_identify(device);
 		if (ret) {
 			nv_error(device, "unknown chipset, 0x%08x\n", boot0);
 			return ret;
@@ -210,31 +149,8 @@ nouveau_devobj_ctor(struct nouveau_object *parent,
 		nv_info(device, "Chipset: %s (NV%02X)\n",
 			device->cname, device->chipset);
 		nv_info(device, "Family : NV%02X\n", device->card_type);
-
-		/* determine frequency of timing crystal */
-		if ( device->chipset < 0x17 ||
-		    (device->chipset >= 0x20 && device->chipset < 0x25))
-			strap &= 0x00000040;
-		else
-			strap &= 0x00400040;
-
-		switch (strap) {
-		case 0x00000000: device->crystal = 13500; break;
-		case 0x00000040: device->crystal = 14318; break;
-		case 0x00400000: device->crystal = 27000; break;
-		case 0x00400040: device->crystal = 25000; break;
-		}
-
+        device->crystal = 27000;  // ???
 		nv_debug(device, "crystal freq: %dKHz\n", device->crystal);
-	}
-
-	if (!(args->disable & NV_DEVICE_DISABLE_MMIO) &&
-	    !nv_subdev(device)->mmio) {
-		nv_subdev(device)->mmio  = ioremap(mmio_base, mmio_size);
-		if (!nv_subdev(device)->mmio) {
-			nv_error(device, "unable to map device registers\n");
-			return -ENOMEM;
-		}
 	}
 
 	/* ensure requested subsystems are available for use */

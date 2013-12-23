@@ -242,25 +242,15 @@ static int nouveau_drm_probe(struct pci_dev *pdev,
 	int ret;
 
 	/* remove conflicting drivers (vesafb, efifb etc) */
-	aper = alloc_apertures(3);
+	aper = alloc_apertures(2);
 	if (!aper)
 		return -ENOMEM;
 
-	aper->ranges[0].base = pci_resource_start(pdev, 1);
-	aper->ranges[0].size = pci_resource_len(pdev, 1);
-	aper->count = 1;
-
-	if (pci_resource_len(pdev, 2)) {
-		aper->ranges[aper->count].base = pci_resource_start(pdev, 2);
-		aper->ranges[aper->count].size = pci_resource_len(pdev, 2);
-		aper->count++;
-	}
-
-	if (pci_resource_len(pdev, 3)) {
-		aper->ranges[aper->count].base = pci_resource_start(pdev, 3);
-		aper->ranges[aper->count].size = pci_resource_len(pdev, 3);
-		aper->count++;
-	}
+	aper->ranges[0].base = pci_resource_start(pdev, 4);
+	aper->ranges[0].size = pci_resource_len(pdev, 4);
+	aper->ranges[1].base = pci_resource_start(pdev, 5);
+	aper->ranges[1].size = pci_resource_len(pdev, 5);
+	aper->count = 2;
 
 #ifdef CONFIG_X86
 	boot = pdev->resource[PCI_ROM_RESOURCE].flags & IORESOURCE_ROM_SHADOW;
@@ -305,30 +295,6 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 	INIT_LIST_HEAD(&drm->clients);
 	spin_lock_init(&drm->tile.lock);
 
-	/* make sure AGP controller is in a consistent state before we
-	 * (possibly) execute vbios init tables (see nouveau_agp.h)
-	 */
-	if (drm_pci_device_is_agp(dev) && dev->agp) {
-		/* dummy device object, doesn't init anything, but allows
-		 * agp code access to registers
-		 */
-		ret = nouveau_object_new(nv_object(drm), NVDRM_CLIENT,
-					 NVDRM_DEVICE, 0x0080,
-					 &(struct nv_device_class) {
-						.device = ~0,
-						.disable =
-						 ~(NV_DEVICE_DISABLE_MMIO |
-						   NV_DEVICE_DISABLE_IDENTIFY),
-						.debug0 = ~0,
-					 }, sizeof(struct nv_device_class),
-					 &drm->device);
-		if (ret)
-			goto fail_device;
-
-		nouveau_agp_reset(drm);
-		nouveau_object_del(nv_object(drm), NVDRM_CLIENT, NVDRM_DEVICE);
-	}
-
 	ret = nouveau_object_new(nv_object(drm), NVDRM_CLIENT, NVDRM_DEVICE,
 				 0x0080, &(struct nv_device_class) {
 					.device = ~0,
@@ -339,13 +305,7 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 	if (ret)
 		goto fail_device;
 
-	/* workaround an odd issue on nvc1 by disabling the device's
-	 * nosnoop capability.  hopefully won't cause issues until a
-	 * better fix is found - assuming there is one...
-	 */
 	device = nv_device(drm->device);
-	if (nv_device(drm->device)->chipset == 0xc1)
-		nv_mask(device, 0x00088080, 0x00000800, 0x00000000);
 
 	nouveau_vga_init(drm);
 	nouveau_agp_init(drm);
@@ -361,14 +321,11 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 	if (ret)
 		goto fail_ttm;
 
-	ret = nouveau_bios_init(dev);
-	if (ret)
-		goto fail_bios;
-
 	ret = nouveau_display_create(dev);
 	if (ret)
 		goto fail_dispctor;
 
+#if 0
 	if (dev->mode_config.num_crtc) {
 		ret = nouveau_display_init(dev);
 		if (ret)
@@ -377,8 +334,11 @@ nouveau_drm_load(struct drm_device *dev, unsigned long flags)
 
 	nouveau_pm_init(dev);
 
+#endif
 	nouveau_accel_init(drm);
+#if 0
 	nouveau_fbcon_init(dev);
+#endif
 	return 0;
 
 fail_dispinit:

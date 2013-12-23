@@ -330,6 +330,7 @@ nouveau_display_create(struct drm_device *dev)
 	drm_kms_helper_poll_init(dev);
 	drm_kms_helper_poll_disable(dev);
 
+#if 0
 	if (nouveau_modeset == 1 ||
 	    (nouveau_modeset < 0 && pclass == PCI_CLASS_DISPLAY_VGA)) {
 		if (nv_device(drm->device)->card_type < NV_50)
@@ -347,6 +348,7 @@ nouveau_display_create(struct drm_device *dev)
 
 		nouveau_backlight_init(dev);
 	}
+#endif
 
 	return 0;
 
